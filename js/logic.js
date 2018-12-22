@@ -34,8 +34,10 @@ function markerSize(magn){
 var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson"
 
 var earthquakeMarkers = [];
+var blabla = [];
 
 d3.json(queryURL, function(response){  
+
 
   response.features.forEach(f =>{
     console.log(f.geometry.coordinates[0])
@@ -57,44 +59,48 @@ d3.json(queryURL, function(response){
         fillOpacity: 0.75,
         color: "purple",
         color: "purple",
-        radius: markerSize(f.properties.mag)
+        radius: markerSize(f.properties.mag),
       }
       )
     );
 
-    // L.circle( [f.geometry.coordinates[1], f.geometry.coordinates[0]], {
-    //   stroke: false,
-    //   fillOpacity: 0.75,
-    //   color: "purple",
-    //   color: "purple",
-    //   radius: markerSize(f.properties.mag)
-    // }
-    // ).addTo(myMap)
+
+
+  //   // L.circle( [f.geometry.coordinates[1], f.geometry.coordinates[0]], {
+  //   //   stroke: false,
+  //   //   fillOpacity: 0.75,
+  //   //   color: "purple",
+  //   //   color: "purple",
+  //   //   radius: markerSize(f.properties.mag)
+  //   // }
+  //   // ).addTo(myMap)
 
 
   });
 
+  var earthquakeLayer = L.layerGroup(earthquakeMarkers)
+
+
+  var overlayMaps = {
+    "Earthquakes": earthquakeLayer
+  }
+  
+  
+  // Creating map object
+  var myMap = L.map("map-id", {
+    center: [30, 0],
+    zoom: 2,
+    layers: [light, earthquakeLayer]
+  });
+  
+  // Create a layer control
+  L.control.layers(baseMaps, overlayMaps, {
+    collapsed: false
+  }).addTo(myMap)
+
+
 });
 
 
 
 
-var earthquakeLayer = L.layerGroup(earthquakeMarkers)
-
-
-var overlayMaps = {
-  "Earthquakes": earthquakeLayer
-}
-
-
-// Creating map object
-var myMap = L.map("map-id", {
-  center: [40, -70],
-  zoom: 3,
-  layers: [light, earthquakeLayer]
-});
-
-// Create a layer control
-L.control.layers(baseMaps, overlayMaps, {
-  collapsed: false
-}).addTo(myMap)
