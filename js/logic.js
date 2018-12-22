@@ -57,21 +57,12 @@ d3.json(queryURL, function(response){
 
 
   response.features.forEach(f =>{
-    console.log(f.geometry.coordinates[0])
-    console.log(f.geometry.coordinates[1])
-    console.log([f.geometry.coordinates[0], f.geometry.coordinates[1]])
-    console.log(f.properties.mag)
-    console.log(f.properties.place)
-    
-    console.log(Date(f.properties.time))
+
 
     var d = new Date(f.properties.time);
-    console.log(d.toDateString())
+
     var earthquakeDate = d.getMonth()+"-"+d.getDate()+"-"+d.getFullYear()+", "+d.getHours()+"h"+d.getMinutes()+" (GMT)";
 
-    console.log(d.getMonth()+"-"+d.getDate()+"-"+d.getFullYear()+", "+d.getHours()+"h"+d.getMinutes()+" (GMT)")
-
-    console.log(colorScale(f.properties.mag))
     earthquakeMarkers.push(
       L.circle( [f.geometry.coordinates[1], f.geometry.coordinates[0]], {
         stroke: true,
@@ -81,7 +72,9 @@ d3.json(queryURL, function(response){
         fillColor: colorScale(+f.properties.mag), // "#FFFF33",
         radius: markerSize(+f.properties.mag),
       }
-      ).bindPopup("<p>"+f.properties.place+"</p><hr><p>"+earthquakeDate+"</p>")
+      ).bindPopup("<p>"+f.properties.place+"</p>\
+                  <p>"+earthquakeDate+"</p>\
+                  <p>Magn. "+f.properties.mag+"</p>")
     );
 
   });
@@ -93,18 +86,23 @@ d3.json(queryURL, function(response){
     "Earthquakes": earthquakeLayer
   }
   
-  
-  // Creating map object
-  var myMap = L.map("map-id", {
-    center: [30, 0],
-    zoom: 2,
-    layers: [light, earthquakeLayer]
-  });
-  
-  // Create a layer control
-  L.control.layers(baseMaps, overlayMaps, {
-    collapsed: false
-  }).addTo(myMap)
+    // Creating map object
+    var myMap = L.map("map-id", {
+      center: [30, 0],
+      zoom: 2,
+      layers: [light, earthquakeLayer]
+    });
+    
+    // Create a layer control
+    L.control.layers(baseMaps, overlayMaps, {
+      collapsed: false
+    }).addTo(myMap)
+
 
 
 });
+
+
+
+
+// https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json
