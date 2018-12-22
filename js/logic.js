@@ -16,6 +16,14 @@ var light = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?ac
     accessToken: API_KEY
   });
 
+// Light map tiles
+var light = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+    attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+    maxZoom: 18,
+    id: "mapbox.light",
+    accessToken: API_KEY
+  });  
+
 var baseMaps = {
   Light: light,
   Satellite: satellite,
@@ -27,24 +35,19 @@ var baseMaps = {
 
 // Function to normalize the marker radius based on the earthquake magnitude
 function markerSize(magn){
-  return magn*5*10**4;
+  // return magn*5*10**4;
+  return magn*5;
 }
 
-function colorScale(magn){
-  // I didn't find any easy, existing way to use colormaps!!?????
-  // so I ended up creating 5 colors only
-  if (magn>6){
-    var c = "#FF3333";
-  } else if(magn>5){
-    var c = "#FF6633";
-  } else if (magn>4){
-    var c = "#FF9933";
-  } else if (magn>3){
-    var c = "#FFCC33";
-  } else {
-    var c = "#FFFF33";
-  }
-  return c
+// Function to define the color of the circles
+function colorScale(d) {
+  return d > 6 ? '#FF3333' :
+         d > 5  ? '#FF6633' :
+         d > 4  ? '#FF9933' :
+         d > 3  ? '#FFCC33' :
+         d > 2   ? '#FFFF33' :
+         d > 1   ? '#ffff00' :
+                    '#bfff00';
 }
 
 
@@ -54,19 +57,20 @@ var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_we
 
 var earthquakeMarkers = [];
 var plateMarkers = [];
+var legendGroup = [];
 
 d3.json(queryURL, function(error, response){  
   if (error) throw error;
 
   response.features.forEach(f =>{
 
-
+    // Create a date string for the popup
     var d = new Date(f.properties.time);
-
     var earthquakeDate = d.getMonth()+"-"+d.getDate()+"-"+d.getFullYear()+", "+d.getHours()+"h"+d.getMinutes()+" (GMT)";
 
+    // define each earthquake marker
     earthquakeMarkers.push(
-      L.circle( [f.geometry.coordinates[1], f.geometry.coordinates[0]], {
+      L.circleMarker( [f.geometry.coordinates[1], f.geometry.coordinates[0]], {
         stroke: true,
         weight: 1,
         fillOpacity: 0.75,
@@ -106,6 +110,27 @@ d3.json(queryURL, function(error, response){
 
     var plateLayer = L.layerGroup(plateMarkers)
 
+    // Create the legend
+    //------------------
+    var legend = L.control({position: 'bottomleft'});
+
+    legend.onAdd = function (map) {
+    
+        var div = L.DomUtil.create('div', 'info legend'),
+            grades = [0, 1, 2, 3, 4, 5, 6],
+            labels = [];
+    
+        // loop through our density intervals and generate a label with a colored square for each interval
+        for (var i = 0; i < grades.length; i++) {
+            div.innerHTML +=
+                '<i style="background:' + colorScale(grades[i] + 0.5) + '"></i> ' +
+                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+        }
+    
+        return div;
+    };
+    
+    
 
   // Building the layers and maps
   //-----------------------------
@@ -116,8 +141,8 @@ d3.json(queryURL, function(error, response){
     
     // Creating map object
     var myMap = L.map("map-id", {
-      center: [30, 0],
-      zoom: 2,
+      center: [30, -80],
+      zoom: 3,
       layers: [light, plateLayer, earthquakeLayer]
     });
       
@@ -125,6 +150,9 @@ d3.json(queryURL, function(error, response){
     L.control.layers(baseMaps, overlayMaps, {
       collapsed: false
     }).addTo(myMap)
+
+    // Add the legend
+    legend.addTo(myMap);
 
   });
 });
