@@ -51,10 +51,12 @@ function colorScale(magn){
 var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson"
 // var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson"
 
+
 var earthquakeMarkers = [];
+var plateMarkers = [];
 
-d3.json(queryURL, function(response){  
-
+d3.json(queryURL, function(error, response){  
+  if (error) throw error;
 
   response.features.forEach(f =>{
 
@@ -82,27 +84,47 @@ d3.json(queryURL, function(response){
   var earthquakeLayer = L.layerGroup(earthquakeMarkers)
 
 
-  var overlayMaps = {
-    "Earthquakes": earthquakeLayer
-  }
-  
+
+  // Query the second url to get the plates infos
+  //--------------------------------------------
+  urlPlates = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json"
+  d3.json(urlPlates, function(error, response){  
+    if (error) throw error;
+
+    // looping on the different plates to build the geoJson objects
+    response.features.forEach(p =>{
+      plateMarkers.push(
+        L.geoJson(response, {
+          style:{
+            color:"blue",
+            weigth:1,
+            fill: false,
+          }
+        })
+      )
+    });
+
+    var plateLayer = L.layerGroup(plateMarkers)
+
+
+  // Building the layers and maps
+  //-----------------------------
+    var overlayMaps = {
+      "Tectonic plates": plateLayer,
+      "Earthquakes": earthquakeLayer,      
+    }
+    
     // Creating map object
     var myMap = L.map("map-id", {
       center: [30, 0],
       zoom: 2,
-      layers: [light, earthquakeLayer]
+      layers: [light, plateLayer, earthquakeLayer]
     });
-    
+      
     // Create a layer control
     L.control.layers(baseMaps, overlayMaps, {
       collapsed: false
     }).addTo(myMap)
 
-
-
+  });
 });
-
-
-
-
-// https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json
