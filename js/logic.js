@@ -30,11 +30,28 @@ function markerSize(magn){
   return magn*5*10**4;
 }
 
-// var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
-var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson"
+function colorScale(magn){
+  // I didn't find any easy, existing way to use colormaps!!?????
+  // so I ended up creating 5 colors only
+  if (magn>6){
+    var c = "#FF3333";
+  } else if(magn>5){
+    var c = "#FF6633";
+  } else if (magn>4){
+    var c = "#FF9933";
+  } else if (magn>3){
+    var c = "#FFCC33";
+  } else {
+    var c = "#FFFF33";
+  }
+  return c
+}
+
+
+var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson"
+// var queryURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson"
 
 var earthquakeMarkers = [];
-var blabla = [];
 
 d3.json(queryURL, function(response){  
 
@@ -50,31 +67,22 @@ d3.json(queryURL, function(response){
 
     var d = new Date(f.properties.time);
     console.log(d.toDateString())
+    var earthquakeDate = d.getMonth()+"-"+d.getDate()+"-"+d.getFullYear()+", "+d.getHours()+"h"+d.getMinutes()+" (GMT)";
 
     console.log(d.getMonth()+"-"+d.getDate()+"-"+d.getFullYear()+", "+d.getHours()+"h"+d.getMinutes()+" (GMT)")
 
+    console.log(colorScale(f.properties.mag))
     earthquakeMarkers.push(
       L.circle( [f.geometry.coordinates[1], f.geometry.coordinates[0]], {
-        stroke: false,
+        stroke: true,
+        weight: 1,
         fillOpacity: 0.75,
-        color: "purple",
-        color: "purple",
-        radius: markerSize(f.properties.mag),
+        color: "gray",
+        fillColor: colorScale(+f.properties.mag), // "#FFFF33",
+        radius: markerSize(+f.properties.mag),
       }
-      )
+      ).bindPopup("<p>"+f.properties.place+"</p><hr><p>"+earthquakeDate+"</p>")
     );
-
-
-
-  //   // L.circle( [f.geometry.coordinates[1], f.geometry.coordinates[0]], {
-  //   //   stroke: false,
-  //   //   fillOpacity: 0.75,
-  //   //   color: "purple",
-  //   //   color: "purple",
-  //   //   radius: markerSize(f.properties.mag)
-  //   // }
-  //   // ).addTo(myMap)
-
 
   });
 
@@ -100,7 +108,3 @@ d3.json(queryURL, function(response){
 
 
 });
-
-
-
-
